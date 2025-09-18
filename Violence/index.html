@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyseur de Violence - Détection d'Images</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-shield-alt"></i> Analyseur de Violence</h1>
+            <p>Détection automatique de contenu violent dans les images</p>
+        </header>
+
+        <main>
+            <!-- Statistiques en temps réel -->
+            <section class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="activeCameras">0</div>
+                            <div class="stat-label">Caméras actives</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="totalViolence">0</div>
+                            <div class="stat-label">Violences détectées</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="todayViolence">0</div>
+                            <div class="stat-label">Aujourd'hui</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-number" id="criticalAlerts">0</div>
+                            <div class="stat-label">Alertes critiques</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Logs de détection en temps réel -->
+            <section class="logs-section">
+                <div class="logs-header">
+                    <h2><i class="fas fa-list-alt"></i> Logs de détection en temps réel</h2>
+                    <div class="logs-controls">
+                        <button class="btn btn-sm" onclick="toggleAutoRefresh()" id="autoRefreshBtn">
+                            <i class="fas fa-play"></i> Auto-refresh
+                        </button>
+                        <button class="btn btn-sm" onclick="clearLogs()">
+                            <i class="fas fa-trash"></i> Effacer
+                        </button>
+                        <button class="btn btn-sm" onclick="exportLogs()">
+                            <i class="fas fa-download"></i> Exporter
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="logs-table-container">
+                    <table class="logs-table" id="logsTable">
+                        <thead>
+                            <tr>
+                                <th>Heure</th>
+                                <th>Caméra</th>
+                                <th>Type de violence</th>
+                                <th>Localisation</th>
+                                <th>Gravité</th>
+                                <th>Confiance</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logsTableBody">
+                            <!-- Les logs seront ajoutés ici dynamiquement -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="logs-footer">
+                    <div class="logs-info">
+                        <span id="logsCount">0</span> entrées affichées
+                    </div>
+                    <div class="logs-filters">
+                        <select id="severityFilter" onchange="filterLogs()">
+                            <option value="">Toutes les gravités</option>
+                            <option value="critical">Critique</option>
+                            <option value="high">Élevé</option>
+                            <option value="medium">Moyen</option>
+                            <option value="low">Faible</option>
+                        </select>
+                        <select id="cityFilter" onchange="filterLogs()">
+                            <option value="">Toutes les villes</option>
+                        </select>
+                        <select id="districtFilter" onchange="filterLogs()">
+                            <option value="">Tous les quartiers</option>
+                        </select>
+                        <select id="priorityFilter" onchange="filterLogs()">
+                            <option value="">Toutes priorités</option>
+                            <option value="high">Haute priorité</option>
+                            <option value="normal">Priorité normale</option>
+                        </select>
+                        <select id="timeFilter" onchange="filterLogs()">
+                            <option value="">Toutes les périodes</option>
+                            <option value="last-hour">Dernière heure</option>
+                            <option value="last-4-hours">4 dernières heures</option>
+                            <option value="today">Aujourd'hui</option>
+                            <option value="last-week">Cette semaine</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dashboard de surveillance urbaine -->
+            <section class="surveillance-dashboard">
+                <div class="dashboard-header">
+                    <h2><i class="fas fa-city"></i> Dashboard de surveillance Lausanne</h2>
+                    <div class="dashboard-controls">
+                        <button class="btn btn-primary" onclick="showCriticalAlerts()">
+                            <i class="fas fa-exclamation-triangle"></i> Alertes critiques
+                        </button>
+                        <button class="btn btn-secondary" onclick="showCameraStatus()">
+                            <i class="fas fa-video"></i> État du réseau
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <!-- Zones à risque -->
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-exclamation-circle"></i> Zones à risque</h3>
+                        <div class="risk-zones" id="riskZones">
+                            <!-- Les zones à risque seront affichées ici -->
+                        </div>
+                    </div>
+                    
+                    <!-- Caméras prioritaires -->
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-star"></i> Caméras prioritaires</h3>
+                        <div class="priority-cameras" id="priorityCameras">
+                            <!-- Les caméras prioritaires seront affichées ici -->
+                        </div>
+                    </div>
+                    
+                    <!-- Activité récente -->
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-clock"></i> Activité récente</h3>
+                        <div class="recent-activity" id="recentActivity">
+                            <!-- L'activité récente sera affichée ici -->
+                        </div>
+                    </div>
+                    
+                    <!-- Statistiques réseau -->
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-network-wired"></i> État du réseau</h3>
+                        <div class="network-stats" id="networkStats">
+                            <!-- Les statistiques réseau seront affichées ici -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-links">
+                <a href="carte.html" class="footer-link">
+                    <i class="fas fa-map"></i> Carte interactive
+                </a>
+                <a href="#" onclick="clearHistory()" class="footer-link">
+                    <i class="fas fa-trash"></i> Effacer l'historique
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="database/db-config.js"></script>
+    <script src="database/index-db.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

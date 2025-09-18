@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation de Résultat - Analyseur de Violence</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="confirm-header">
+            <button class="back-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i> Retour
+            </button>
+            <h1><i class="fas fa-check-circle"></i> Confirmation du résultat</h1>
+            <p>Veuillez confirmer ou corriger la détection de violence</p>
+        </header>
+
+        <main class="confirm-main">
+            <!-- Image à confirmer -->
+            <section class="image-confirmation">
+                <div class="image-container">
+                    <img id="confirmImage" src="" alt="Image à confirmer">
+                    <div class="image-overlay" id="confirmOverlay">
+                        <!-- Les zones détectées -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Résultat de l'IA -->
+            <section class="ai-result">
+                <h2><i class="fas fa-robot"></i> Résultat de l'Intelligence Artificielle</h2>
+                
+                <div class="ai-result-card">
+                    <div class="ai-prediction">
+                        <div class="prediction-header">
+                            <span class="prediction-label">Prédiction IA:</span>
+                            <span class="prediction-value" id="aiPrediction">
+                                <span class="prediction-badge"></span>
+                            </span>
+                        </div>
+                        
+                        <div class="confidence-display">
+                            <div class="confidence-label">Niveau de confiance:</div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" id="aiConfidence"></div>
+                            </div>
+                            <span class="confidence-percentage" id="aiConfidenceText">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="ai-details">
+                        <h3>Détails de la détection:</h3>
+                        <ul id="aiDetailsList">
+                            <!-- Les détails seront ajoutés dynamiquement -->
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Confirmation utilisateur -->
+            <section class="user-confirmation">
+                <h2><i class="fas fa-user-check"></i> Votre confirmation</h2>
+                
+                <div class="confirmation-options">
+                    <div class="option-group">
+                        <h3>Cette image contient-elle de la violence ?</h3>
+                        
+                        <div class="radio-options">
+                            <label class="radio-option">
+                                <input type="radio" name="hasViolence" value="yes" id="violenceYes">
+                                <span class="radio-custom"></span>
+                                <div class="option-content">
+                                    <i class="fas fa-exclamation-triangle text-danger"></i>
+                                    <span>Oui, cette image contient de la violence</span>
+                                </div>
+                            </label>
+                            
+                            <label class="radio-option">
+                                <input type="radio" name="hasViolence" value="no" id="violenceNo">
+                                <span class="radio-custom"></span>
+                                <div class="option-content">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    <span>Non, cette image ne contient pas de violence</span>
+                                </div>
+                            </label>
+                            
+                            <label class="radio-option">
+                                <input type="radio" name="hasViolence" value="uncertain" id="violenceUncertain">
+                                <span class="radio-custom"></span>
+                                <div class="option-content">
+                                    <i class="fas fa-question-circle text-warning"></i>
+                                    <span>Je ne suis pas certain(e)</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Niveau de gravité (si violence détectée) -->
+                    <div class="option-group" id="severityGroup" style="display: none;">
+                        <h3>Quel est le niveau de gravité ?</h3>
+                        
+                        <div class="severity-options">
+                            <label class="severity-option">
+                                <input type="radio" name="severity" value="low">
+                                <span class="severity-indicator low"></span>
+                                <span>Faible (30-49%)</span>
+                            </label>
+                            
+                            <label class="severity-option">
+                                <input type="radio" name="severity" value="medium">
+                                <span class="severity-indicator medium"></span>
+                                <span>Moyen (50-69%)</span>
+                            </label>
+                            
+                            <label class="severity-option">
+                                <input type="radio" name="severity" value="high">
+                                <span class="severity-indicator high"></span>
+                                <span>Élevé (70-89%)</span>
+                            </label>
+                            
+                            <label class="severity-option">
+                                <input type="radio" name="severity" value="critical">
+                                <span class="severity-indicator critical"></span>
+                                <span>Critique (90-100%)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Types de violence (si violence détectée) -->
+                    <div class="option-group" id="violenceTypesGroup" style="display: none;">
+                        <h3>Quels types de violence sont présents ?</h3>
+                        
+                        <div class="checkbox-options">
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="violenceTypes" value="physical">
+                                <span class="checkbox-custom"></span>
+                                <i class="fas fa-fist-raised"></i>
+                                <span>Violence physique</span>
+                            </label>
+                            
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="violenceTypes" value="weapon">
+                                <span class="checkbox-custom"></span>
+                                <i class="fas fa-gun"></i>
+                                <span>Présence d'armes</span>
+                            </label>
+                            
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="violenceTypes" value="blood">
+                                <span class="checkbox-custom"></span>
+                                <i class="fas fa-tint"></i>
+                                <span>Sang/Blessures</span>
+                            </label>
+                            
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="violenceTypes" value="threat">
+                                <span class="checkbox-custom"></span>
+                                <i class="fas fa-exclamation"></i>
+                                <span>Menaces/Gestes agressifs</span>
+                            </label>
+                            
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="violenceTypes" value="other">
+                                <span class="checkbox-custom"></span>
+                                <i class="fas fa-ellipsis-h"></i>
+                                <span>Autre</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Commentaires -->
+                    <div class="option-group">
+                        <h3>Commentaires (optionnel)</h3>
+                        <textarea 
+                            id="userComments" 
+                            placeholder="Ajoutez des commentaires pour expliquer votre évaluation..."
+                            rows="4"
+                        ></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Actions -->
+            <section class="confirmation-actions">
+                <div class="actions-grid">
+                    <button class="action-btn btn-primary" onclick="confirmResult()">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Confirmer et enregistrer</span>
+                    </button>
+                    
+                    <button class="action-btn btn-secondary" onclick="saveDraft()">
+                        <i class="fas fa-save"></i>
+                        <span>Enregistrer comme brouillon</span>
+                    </button>
+                    
+                    <button class="action-btn btn-warning" onclick="reportError()">
+                        <i class="fas fa-bug"></i>
+                        <span>Signaler une erreur IA</span>
+                    </button>
+                    
+                    <button class="action-btn btn-danger" onclick="skipConfirmation()">
+                        <i class="fas fa-skip-forward"></i>
+                        <span>Passer cette confirmation</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Historique des confirmations -->
+            <section class="confirmation-history">
+                <h2><i class="fas fa-history"></i> Historique des confirmations</h2>
+                
+                <div class="history-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalConfirmations">0</div>
+                        <div class="stat-label">Total confirmées</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="correctPredictions">0</div>
+                        <div class="stat-label">Prédictions correctes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="accuracyRate">0%</div>
+                        <div class="stat-label">Taux de précision</div>
+                    </div>
+                </div>
+
+                <div class="recent-confirmations" id="recentConfirmations">
+                    <!-- Les confirmations récentes seront affichées ici -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="database/db-config.js"></script>
+    <script src="database/confirm-db.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Initialiser la page de confirmation
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfirmationData();
+            setupEventListeners();
+        });
+
+        // Gérer l'affichage conditionnel des sections
+        function setupEventListeners() {
+            const violenceOptions = document.querySelectorAll('input[name="hasViolence"]');
+            violenceOptions.forEach(option => {
+                option.addEventListener('change', function() {
+                    const severityGroup = document.getElementById('severityGroup');
+                    const typesGroup = document.getElementById('violenceTypesGroup');
+                    
+                    if (this.value === 'yes') {
+                        severityGroup.style.display = 'block';
+                        typesGroup.style.display = 'block';
+                    } else {
+                        severityGroup.style.display = 'none';
+                        typesGroup.style.display = 'none';
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
