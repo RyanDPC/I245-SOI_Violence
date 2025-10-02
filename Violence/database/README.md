@@ -4,66 +4,64 @@
 
 ### CAMERA Table:
 - id [INT AUTO_INCREMENT PRIMARY KEY]
-- name [VARCHAR(255)]
+- name [TINYTEXT]
 - lieu [TINYTEXT]
 - status [ENUM('active', 'inactive', 'maintenance', 'error')]
-- ip_adress [VARCHAR(45)]
-- district [VARCHAR(100)]
-- city [VARCHAR(100)]
+- ip_adress [TINYTEXT]
+- model [TINYTEXT]
+- username [TINYTEXT]
+- password [TINYTEXT]
+- last_connexion [DATE TIME]
+
+### POSITION Table:
+- id [INT AUTO_INCREMENT PRIMARY KEY]
+- label [TINYTEXT]
 - latitude [DECIMAL(10, 8)]
 - longitude [DECIMAL(11, 8)]
-- model [VARCHAR(100)]
-- resolution [VARCHAR(20)]
-- fps [INT]
-- night_vision [BOOLEAN]
-- zoom_level [INT]
-- angle_horizontal [INT]
-- angle_vertical [INT]
-- storage_days [INT]
-- last_maintenance [DATE]
-- next_maintenance [DATE]
 
-### ACTION Table:
+### IMAGE Table:
 - id [INT AUTO_INCREMENT PRIMARY KEY]
-- name [VARCHAR(255)]
-- confiance [INT]
-- image [VARCHAR(500)]
-- description [VARCHAR(500)]
-- timestamp [TIMESTAMP]
-- violence [ENUM('critical', 'high', 'medium', 'low')]
-- camera_id [INT]
-- image_width [INT]
-- image_height [INT]
-- file_size [BIGINT]
-- file_format [VARCHAR(10)]
-- detection_zones [JSON]
-- ai_model_version [VARCHAR(50)]
-- processing_time [DECIMAL(8,3)]
-- false_positive [BOOLEAN]
-- confirmed [BOOLEAN]
-- confirmed_at [TIMESTAMP]
-- user_comments [TEXT]
-- severity_score [DECIMAL(5,2)]
+- date [DATE TIME]
+- uri [TINYTEXT]
+- fk_camera [INTEGER] [1,N]
 
-### ALERT Table:
+### ANALYSE Table:
 - id [INT AUTO_INCREMENT PRIMARY KEY]
-- alert_type [ENUM('camera_offline', 'high_violence_rate', 'storage_full', 'system_error', 'maintenance_due')]
-- severity [ENUM('critical', 'high', 'medium', 'low')]
-- title [VARCHAR(255)]
-- message [TEXT]
-- camera_id [INT]
-- action_id [INT]
+- name [TINYTEXT]
+- type_analyse [ENUM('police', 'ambulance', 'pompier')]
+- nbr_positive_necessary [TINYINT]
+
+### RESULTAT_ANALYSE Table:
+- id [INT AUTO_INCREMENT PRIMARY KEY]
+- fk_image [INTEGER]   [1,N]
+- fk_analyse [INTEGER] [1,N]
+- result [ENUM('low', 'medium', 'high', 'nothing')]
+- date [DATE TIME]
+- human_verification [BOOLEAN]
 - is_resolved [BOOLEAN]
-- resolved_at [TIMESTAMP]
-
-### SYSTEM_CONFIG Table:
-- id [INT AUTO_INCREMENT PRIMARY KEY]
-- config_key [VARCHAR(100)]
-- config_value [TEXT]
-- description [TEXT]
-- is_encrypted [BOOLEAN]
 
 ## Relations:
-- CAMERA (1) ←→ (N) ACTION
-- CAMERA (1) ←→ (N) ALERT
-- ACTION (1) ←→ (N) ALERT
+- CAMERA (N) ←→ (1) IMAGE
+- CAMERA (1) ←→ (1) POSITION 
+- IMAGE (N) ←→ (1) RESULTAT_ANALYSE
+- RESULTAT_ANALYSE (1) ←→ (N) ANALYSE
+
+## INDEX:
+
+### ANALYSE Table:
+- INDEX idx_analyse_id ON id
+
+### CAMERA Table:
+- INDEX idx_camera_id ON id
+
+### IMAGE Table:
+- INDEX idx_image_date ON date
+- INDEX idx_image_id ON id
+- INDEX idx_image_date_id ON (date, id)
+
+### RESULTAT_ANALYSE Table:
+- INDEX idx_resultat_analyse_fk_image ON fk_image
+
+### POSITION Table:
+- INDEX idx_position_latitude_longitude ON (latitude, longitude)
+- INDEX idx_position_id ON id

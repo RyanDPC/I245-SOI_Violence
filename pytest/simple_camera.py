@@ -4,7 +4,7 @@ Script ultra-simple pour récupérer la vidéo de la caméra
 import cv2
 
 # URL de votre caméra
-CAMERA_URL = "rtsp://Test123:Test123@192.168.1.43/live0"
+CAMERA_URL = "rtsp://Test123:Test123@192.168.1.45/live0"
 
 print("Connexion à la caméra...")
 cap = cv2.VideoCapture(CAMERA_URL)
@@ -29,3 +29,7 @@ else:
 
 cap.release()
 cv2.destroyAllWindows()
+
+
+
+

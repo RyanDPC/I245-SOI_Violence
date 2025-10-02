@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Caméra Node.js</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #4CAF50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .video-container {
+            background: #000;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .video-stream {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        .controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #45a049;
+        }
+        .btn-danger {
+            background: #f44336;
+        }
+        .btn-danger:hover {
+            background: #da190b;
+        }
+        .btn-warning {
+            background: #ff9800;
+        }
+        .btn-warning:hover {
+            background: #e68900;
+        }
+        .status {
+            background: #333;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .status.success {
+            background: #2e7d32;
+        }
+        .status.error {
+            background: #c62828;
+        }
+        .status.warning {
+            background: #ef6c00;
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background: #333;
+            color: white;
+            font-size: 16px;
+        }
+        .method-tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background: #4CAF50;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📹 Test Caméra Node.js - Streaming RTSP</h1>
+        
+        <div class="method-tabs">
+            <button class="tab active" onclick="showTab('mjpeg')">MJPEG Stream</button>
+            <button class="tab" onclick="showTab('websocket')">WebSocket Stream</button>
+        </div>
+
+        <!-- Configuration -->
+        <div class="test-section">
+            <h3>Configuration Caméra</h3>
+            <div class="input-group">
+                <label for="cameraId">ID Caméra:</label>
+                <input type="number" id="cameraId" value="1" placeholder="ID de la caméra dans la base de données">
+            </div>
+            <div class="input-group">
+                <label for="rtspUrl">URL RTSP (optionnel):</label>
+                <input type="text" id="rtspUrl" placeholder="rtsp://user:pass@ip/live0">
+            </div>
+        </div>
+
+        <!-- MJPEG Stream -->
+        <div id="mjpeg-tab" class="tab-content active">
+            <div class="test-section">
+                <h3>MJPEG Stream (HTTP)</h3>
+                <div class="status" id="mjpeg-status">Prêt à démarrer</div>
+                
+                <div class="controls">
+                    <button class="btn" onclick="startMJPEGStream()">▶️ Démarrer Stream</button>
+                    <button class="btn btn-danger" onclick="stopMJPEGStream()">⏹️ Arrêter</button>
+                </div>
+                
+                <div class="video-container">
+                    <img id="mjpeg-stream" class="video-stream" style="display: none;" alt="Flux MJPEG">
+                </div>
+            </div>
+        </div>
+
+        <!-- WebSocket Stream -->
+        <div id="websocket-tab" class="tab-content">
+            <div class="test-section">
+                <h3>WebSocket Stream</h3>
+                <div class="status" id="ws-status">Non connecté</div>
+                
+                <div class="controls">
+                    <button class="btn" onclick="startWebSocketStream()">🔌 Connecter WebSocket</button>
+                    <button class="btn btn-warning" onclick="startWSStream()">▶️ Démarrer Stream</button>
+                    <button class="btn btn-danger" onclick="stopWebSocketStream()">⏹️ Arrêter</button>
+                </div>
+                
+                <div class="video-container">
+                    <img id="ws-stream" class="video-stream" style="display: none;" alt="Flux WebSocket">
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs -->
+        <div class="test-section">
+            <h3>Logs</h3>
+            <div id="logs" class="status" style="height: 200px; overflow-y: auto; white-space: pre-wrap;"></div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let mjpegStreaming = false;
+
+        function log(message) {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            logs.textContent += `[${timestamp}] ${message}\n`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function showTab(tabName) {
+            // Masquer tous les onglets
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Afficher l'onglet sélectionné
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function updateStatus(elementId, message, type = '') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'status ' + type;
+        }
+
+        // MJPEG Stream
+        function startMJPEGStream() {
+            const cameraId = document.getElementById('cameraId').value;
+            if (!cameraId) {
+                alert('Veuillez entrer un ID de caméra');
+                return;
+            }
+
+            const streamUrl = `/stream/${cameraId}`;
+            const img = document.getElementById('mjpeg-stream');
+            
+            log(`Démarrage du stream MJPEG pour la caméra ${cameraId}`);
+            updateStatus('mjpeg-status', 'Connexion...', 'warning');
+            
+            img.onload = function() {
+                updateStatus('mjpeg-status', '✅ Stream MJPEG actif', 'success');
+                log('Stream MJPEG démarré avec succès');
+            };
+            
+            img.onerror = function() {
+                updateStatus('mjpeg-status', '❌ Erreur de connexion MJPEG', 'error');
+                log('Erreur lors du démarrage du stream MJPEG');
+            };
+            
+            img.src = streamUrl;
+            img.style.display = 'block';
+            mjpegStreaming = true;
+        }
+
+        function stopMJPEGStream() {
+            const img = document.getElementById('mjpeg-stream');
+            img.src = '';
+            img.style.display = 'none';
+            mjpegStreaming = false;
+            updateStatus('mjpeg-status', 'Stream arrêté', '');
+            log('Stream MJPEG arrêté');
+        }
+
+        // WebSocket Stream
+        function startWebSocketStream() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                log('WebSocket déjà connecté');
+                return;
+            }
+
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}`;
+            
+            log(`Connexion WebSocket: ${wsUrl}`);
+            updateStatus('ws-status', 'Connexion...', 'warning');
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function() {
+                updateStatus('ws-status', '✅ WebSocket connecté', 'success');
+                log('WebSocket connecté avec succès');
+            };
+            
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'frame') {
+                    const img = document.getElementById('ws-stream');
+                    img.src = 'data:image/jpeg;base64,' + data.data;
+                    img.style.display = 'block';
+                } else if (data.type === 'stream_started') {
+                    updateStatus('ws-status', '✅ Stream WebSocket actif', 'success');
+                    log(`Stream WebSocket démarré pour la caméra ${data.cameraId}`);
+                } else if (data.type === 'error') {
+                    updateStatus('ws-status', '❌ Erreur: ' + data.message, 'error');
+                    log('Erreur WebSocket: ' + data.message);
+                }
+            };
+            
+            ws.onclose = function() {
+                updateStatus('ws-status', 'WebSocket fermé', '');
+                log('Connexion WebSocket fermée');
+            };
+            
+            ws.onerror = function(error) {
+                updateStatus('ws-status', '❌ Erreur de connexion WebSocket', 'error');
+                log('Erreur WebSocket: ' + error);
+            };
+        }
+
+        function startWSStream() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('Veuillez d\'abord connecter le WebSocket');
+                return;
+            }
+
+            const cameraId = document.getElementById('cameraId').value;
+            if (!cameraId) {
+                alert('Veuillez entrer un ID de caméra');
+                return;
+            }
+
+            log(`Démarrage du stream WebSocket pour la caméra ${cameraId}`);
+            ws.send(JSON.stringify({
+                type: 'start_stream',
+                cameraId: parseInt(cameraId)
+            }));
+        }
+
+        function stopWebSocketStream() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+            
+            const img = document.getElementById('ws-stream');
+            img.src = '';
+            img.style.display = 'none';
+            
+            updateStatus('ws-status', 'Stream arrêté', '');
+            log('Stream WebSocket arrêté');
+        }
+
+        // Initialisation
+        log('Page de test chargée');
+        log('Instructions:');
+        log('1. Entrez l\'ID de votre caméra');
+        log('2. Testez d\'abord le stream MJPEG');
+        log('3. Puis testez le stream WebSocket');
+    </script>
+</body>
+</html>

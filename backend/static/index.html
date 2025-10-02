@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCam Dashboard</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+      
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      
+      header {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      }
+      
+      h1 {
+        color: #667eea;
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+      
+      .subtitle {
+        color: #666;
+        font-size: 1.1em;
+      }
+      
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+      }
+      
+      @media (max-width: 1024px) {
+        .main-content {
+          grid-template-columns: 1fr;
+        }
+      }
+      
+      .card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      }
+      
+      h2 {
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 1.8em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      
+      .btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1em;
+        font-weight: 600;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+      
+      .btn:active {
+        transform: translateY(0);
+      }
+      
+      .btn-small {
+        padding: 8px 16px;
+        font-size: 0.9em;
+      }
+      
+      .btn-danger {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      }
+      
+      .btn-success {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      }
+      
+      .camera-list {
+        display: grid;
+        gap: 15px;
+        margin-top: 20px;
+      }
+      
+      .camera-item {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 15px;
+        align-items: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-left: 4px solid transparent;
+      }
+      
+      .camera-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      }
+      
+      .camera-item.status-active {
+        border-left-color: #28a745;
+      }
+      
+      .camera-item.status-inactive {
+        border-left-color: #ffc107;
+      }
+      
+      .camera-item.status-maintenance {
+        border-left-color: #17a2b8;
+      }
+      
+      .camera-item.status-error {
+        border-left-color: #dc3545;
+      }
+      
+      .camera-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      .camera-ip {
+        font-size: 1.2em;
+        font-weight: 600;
+        color: #333;
+      }
+      
+      .camera-details {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        color: #666;
+        font-size: 0.9em;
+      }
+      
+      .camera-details span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      
+      .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+      
+      .status-badge.active {
+        background: #d4edda;
+        color: #155724;
+      }
+      
+      .status-badge.inactive {
+        background: #fff3cd;
+        color: #856404;
+      }
+      
+      .status-badge.maintenance {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
+      
+      .status-badge.error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      
+      .camera-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .modal.active {
+        display: flex;
+      }
+      
+      .modal-content {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        animation: slideUp 0.3s ease-out;
+      }
+      
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+      }
+      
+      .modal-header h3 {
+        font-size: 1.8em;
+        color: #333;
+      }
+      
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 2em;
+        color: #999;
+        cursor: pointer;
+        line-height: 1;
+        transition: color 0.2s;
+      }
+      
+      .close-btn:hover {
+        color: #333;
+      }
+      
+      .form-group {
+        margin-bottom: 20px;
+      }
+      
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+      }
+      
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1em;
+        transition: border-color 0.2s;
+      }
+      
+      .form-group input:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+      
+      .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+      }
+      
+      .form-actions .btn {
+        flex: 1;
+      }
+      
+      .alert-list {
+        display: grid;
+        gap: 15px;
+        margin-top: 20px;
+        max-height: 600px;
+        overflow-y: auto;
+      }
+      
+      .alert-item {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 15px;
+        align-items: center;
+        border-left: 4px solid #ffc107;
+      }
+      
+      .alert-item.result-high {
+        border-left-color: #dc3545;
+      }
+      
+      .alert-item.result-medium {
+        border-left-color: #fd7e14;
+      }
+      
+      .alert-item.result-low {
+        border-left-color: #ffc107;
+      }
+      
+      .alert-item.result-nothing {
+        border-left-color: #28a745;
+      }
+      
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+      }
+      
+      .empty-state svg {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 20px;
+        opacity: 0.3;
+      }
+      
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+      }
+      
+      .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>📹 SmartCam Dashboard</h1>
+        <p class="subtitle">Gestion intelligente de vos caméras de surveillance</p>
+      </header>
+      
+      <div class="main-content">
+        <div class="card">
+          <h2>
+            <span>🎥</span> Caméras
+            <button class="btn btn-small" onclick="openAddCameraModal()" style="margin-left: auto;">
+              + Ajouter une caméra
+            </button>
+          </h2>
+          <div id="cameras-container">
+            <div class="loading">
+              <div class="spinner"></div>
+              <p>Chargement des caméras...</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <h2><span>🚨</span> Alertes Récentes</h2>
+          <div id="alerts-container">
+            <div class="loading">
+              <div class="spinner"></div>
+              <p>Chargement des alertes...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modal Vision Caméra -->
+    <div id="viewModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="viewModalTitle">Vision Caméra</h3>
+          <button class="close-btn" onclick="closeViewModal()">&times;</button>
+        </div>
+        <div style="text-align: center; margin: 20px 0;">
+          <img id="cameraStream" src="" alt="Flux caméra" style="max-width: 100%; max-height: 500px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+          <div id="streamInfo" style="margin-top: 15px; color: #666;">
+            <p id="streamStatus">Connexion en cours...</p>
+            <p id="streamUrl" style="font-size: 0.9em; word-break: break-all;"></p>
+            <div id="rtspInfo" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: left;">
+              <h4 style="margin: 0 0 10px 0; color: #333;">📡 Flux RTSP (pour l'analyseur)</h4>
+              <p id="rtspUrl" style="font-family: monospace; font-size: 0.85em; background: white; padding: 8px; border-radius: 4px; margin: 5px 0;"></p>
+              <p style="font-size: 0.85em; color: #666; margin: 10px 0 0 0;">
+                ℹ️ Les flux RTSP ne s'affichent pas directement dans le navigateur.<br>
+                Utilisez VLC ou un autre lecteur pour visualiser le flux RTSP.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Ajout/Édition Caméra -->
+    <div id="cameraModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modalTitle">Ajouter une caméra</h3>
+          <button class="close-btn" onclick="closeCameraModal()">&times;</button>
+        </div>
+        <form id="cameraForm" onsubmit="saveCamera(event)">
+          <div class="form-group">
+            <label for="ip_address">Adresse IP *</label>
+            <input type="text" id="ip_address" name="Ip_address" placeholder="192.168.1.100" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="username">Nom d'utilisateur</label>
+            <input type="text" id="username" name="Username" placeholder="admin">
+          </div>
+          
+          <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <input type="password" id="password" name="Password" placeholder="••••••••">
+          </div>
+          
+          <div class="form-group">
+            <label for="status">Statut</label>
+            <select id="status" name="Status" required>
+              <option value="inactive">Inactive</option>
+              <option value="active">Active</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="error">Erreur</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="model">Modèle</label>
+            <input type="text" id="model" name="Model" placeholder="Hikvision DS-2CD2085">
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn btn-danger" onclick="closeCameraModal()">Annuler</button>
+            <button type="submit" class="btn btn-success">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <script>
+      let cameras = [];
+      let alerts = [];
+      let editingCameraId = null;
+      
+      // Charger les données au démarrage
+      async function loadCameras() {
+        try {
+          const res = await fetch('/api/cameras');
+          cameras = await res.json();
+          renderCameras();
+        } catch (err) {
+          console.error('Erreur chargement caméras:', err);
+          document.getElementById('cameras-container').innerHTML = 
+            '<div class="empty-state"><p>Erreur de chargement</p></div>';
+        }
+      }
+      
+      async function loadAlerts() {
+        try {
+          const res = await fetch('/api/alerts');
+          alerts = await res.json();
+          renderAlerts();
+        } catch (err) {
+          console.error('Erreur chargement alertes:', err);
+          document.getElementById('alerts-container').innerHTML = 
+            '<div class="empty-state"><p>Erreur de chargement</p></div>';
+        }
+      }
+      
+      function renderCameras() {
+        const container = document.getElementById('cameras-container');
+        
+        if (cameras.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <svg fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z"/>
+              </svg>
+              <p>Aucune caméra configurée</p>
+              <p style="font-size: 0.9em; margin-top: 10px;">Cliquez sur "Ajouter une caméra" pour commencer</p>
+            </div>
+          `;
+          return;
+        }
+        
+        container.innerHTML = '<div class="camera-list">' + cameras.map(cam => `
+          <div class="camera-item status-${cam.Status}">
+            <div class="camera-info">
+              <div class="camera-ip">${cam.Ip_address}</div>
+              <div class="camera-details">
+                <span><span class="status-badge ${cam.Status}">${cam.Status}</span></span>
+                ${cam.Model ? `<span>📱 ${cam.Model}</span>` : ''}
+                ${cam.Username ? `<span>👤 ${cam.Username}</span>` : ''}
+                <span>🕐 ${new Date(cam.Last_connexion).toLocaleString('fr-FR')}</span>
+              </div>
+            </div>
+            <div class="camera-actions">
+              <button class="btn btn-small" onclick="viewCamera(${cam.id})">📹 Voir</button>
+              <button class="btn btn-small btn-success" onclick="editCamera(${cam.id})">✏️ Modifier</button>
+              <button class="btn btn-small btn-danger" onclick="deleteCamera(${cam.id})">🗑️ Supprimer</button>
+            </div>
+          </div>
+        `).join('') + '</div>';
+      }
+      
+      function renderAlerts() {
+        const container = document.getElementById('alerts-container');
+        
+        if (alerts.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <svg fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              <p>Aucune alerte récente</p>
+            </div>
+          `;
+          return;
+        }
+        
+        container.innerHTML = '<div class="alert-list">' + alerts.slice(0, 10).map(alert => `
+          <div class="alert-item result-${alert.result}">
+            <div style="font-size: 1.5em;">
+              ${alert.result === 'high' ? '🔴' : alert.result === 'medium' ? '🟠' : alert.result === 'low' ? '🟡' : '🟢'}
+            </div>
+            <div>
+              <div style="font-weight: 600; margin-bottom: 5px;">
+                ${alert.result.toUpperCase()}
+                ${alert.is_resolved ? ' ✅ Résolu' : ''}
+              </div>
+              <div style="font-size: 0.85em; color: #666;">
+                ${new Date(alert.date).toLocaleString('fr-FR')}
+              </div>
+            </div>
+            <div>
+              ${alert.URI ? `<img src="${alert.URI}" style="max-width: 100px; border-radius: 5px;">` : ''}
+            </div>
+          </div>
+        `).join('') + '</div>';
+      }
+      
+      function openAddCameraModal() {
+        editingCameraId = null;
+        document.getElementById('modalTitle').textContent = 'Ajouter une caméra';
+        document.getElementById('cameraForm').reset();
+        document.getElementById('cameraModal').classList.add('active');
+      }
+      
+      function editCamera(id) {
+        const camera = cameras.find(c => c.id === id);
+        if (!camera) return;
+        
+        editingCameraId = id;
+        document.getElementById('modalTitle').textContent = 'Modifier la caméra';
+        document.getElementById('ip_address').value = camera.Ip_address || '';
+        document.getElementById('username').value = camera.Username || '';
+        document.getElementById('password').value = camera.Password || '';
+        document.getElementById('status').value = camera.Status || 'inactive';
+        document.getElementById('model').value = camera.Model || '';
+        document.getElementById('cameraModal').classList.add('active');
+      }
+      
+      function closeCameraModal() {
+        document.getElementById('cameraModal').classList.remove('active');
+        editingCameraId = null;
+      }
+      
+      function viewCamera(id) {
+        const camera = cameras.find(c => c.id === id);
+        if (!camera) return;
+        
+        document.getElementById('viewModalTitle').textContent = `Vision Caméra - ${camera.Ip_address}`;
+        
+        // Afficher l'URL RTSP pour l'analyseur
+        const rtspUrl = `rtsp://${camera.Username}:${camera.Password}@${camera.Ip_address}/live0`;
+        document.getElementById('rtspUrl').textContent = rtspUrl;
+        
+        document.getElementById('streamStatus').textContent = 'Tentative de connexion...';
+        document.getElementById('cameraStream').src = '';
+        document.getElementById('viewModal').classList.add('active');
+        
+        // Utiliser le stream converti RTSP vers MJPEG
+        const streamUrl = `/stream/${id}`;
+        document.getElementById('streamUrl').textContent = `http://localhost:3000${streamUrl}`;
+        
+        const img = document.getElementById('cameraStream');
+        img.onload = function() {
+          document.getElementById('streamStatus').textContent = '✅ Connexion réussie !';
+          document.getElementById('streamStatus').style.color = '#28a745';
+        };
+        
+        img.onerror = function() {
+          document.getElementById('streamStatus').textContent = '❌ Impossible de se connecter à la caméra RTSP';
+          document.getElementById('streamStatus').style.color = '#dc3545';
+        };
+        
+        img.src = streamUrl;
+      }
+      
+      function tryStream(urls, index) {
+        if (index >= urls.length) {
+          document.getElementById('streamStatus').textContent = '❌ Impossible de se connecter à la caméra';
+          document.getElementById('streamUrl').textContent = 'Essayez de vérifier l\'adresse IP et les identifiants';
+          return;
+        }
+        
+        const img = document.getElementById('cameraStream');
+        const status = document.getElementById('streamStatus');
+        const url = urls[index];
+        
+        status.textContent = `Tentative ${index + 1}/${urls.length}: ${url}`;
+        
+        img.onload = function() {
+          status.textContent = '✅ Connexion réussie !';
+          status.style.color = '#28a745';
+        };
+        
+        img.onerror = function() {
+          setTimeout(() => tryStream(urls, index + 1), 1000);
+        };
+        
+        img.src = url;
+      }
+      
+      function closeViewModal() {
+        document.getElementById('viewModal').classList.remove('active');
+        document.getElementById('cameraStream').src = '';
+        document.getElementById('streamStatus').textContent = 'Connexion en cours...';
+        document.getElementById('streamStatus').style.color = '#666';
+      }
+      
+      async function saveCamera(event) {
+        event.preventDefault();
+        
+        const formData = new FormData(event.target);
+        const data = Object.fromEntries(formData.entries());
+        
+        try {
+          let res;
+          if (editingCameraId) {
+            res = await fetch(`/api/cameras/${editingCameraId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data)
+            });
+          } else {
+            res = await fetch('/api/cameras', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data)
+            });
+          }
+          
+          if (res.ok) {
+            closeCameraModal();
+            await loadCameras();
+          } else {
+            alert('Erreur lors de l\'enregistrement');
+          }
+        } catch (err) {
+          console.error('Erreur:', err);
+          alert('Erreur de connexion');
+        }
+      }
+      
+      async function deleteCamera(id) {
+        if (!confirm('Êtes-vous sûr de vouloir supprimer cette caméra ?')) {
+          return;
+        }
+        
+        try {
+          const res = await fetch(`/api/cameras/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            await loadCameras();
+          } else {
+            alert('Erreur lors de la suppression');
+          }
+        } catch (err) {
+          console.error('Erreur:', err);
+          alert('Erreur de connexion');
+        }
+      }
+      
+      // Fermer les modals en cliquant à l'extérieur
+      document.getElementById('cameraModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeCameraModal();
+        }
+      });
+      
+      document.getElementById('viewModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeViewModal();
+        }
+      });
+      
+      // Charger les données au démarrage
+      loadCameras();
+      loadAlerts();
+      
+      // Rafraîchir toutes les 10 secondes
+      setInterval(() => {
+        loadCameras();
+        loadAlerts();
+      }, 10000);
+    </script>
+  </body>
+</html>
